@@ -14,6 +14,7 @@
 
 #import <Foundation/Foundation.h>
 
+#import "FIRCrashlyticsReport.h"
 #import "FIRExceptionModel.h"
 
 #if __has_include(<Crashlytics/Crashlytics.h>)
@@ -179,6 +180,29 @@ NS_SWIFT_NAME(Crashlytics)
 - (void)checkForUnsentReportsWithCompletion:(void (^)(BOOL))completion
     NS_SWIFT_NAME(checkForUnsentReports(completion:));
 
+/**
+ * Determines whether there are any unsent crash reports cached on the device, then calls the given
+ * callback.
+ *
+ * The callback only executes if automatic data collection is disabled. You can use
+ * the callback to get one-time consent from a user upon a crash, and then call
+ * sendUnsentReports or deleteUnsentReports, depending on whether or not the user gives consent.
+ *
+ * Disable automatic collection by:
+ *  - Adding the FirebaseCrashlyticsCollectionEnabled: NO key to your App's Info.plist
+ *  - Calling [[FIRCrashlytics crashlytics] setCrashlyticsCollectionEnabled:NO] in your app
+ *  - Setting FIRApp's isDataCollectionDefaultEnabled to NO
+ *
+ * @param completion The callback that's executed once Crashlytics finishes checking for unsent
+ * reports. The callback is called with a list of all unsent Crashlytics Reports ordered by
+ * newest first.
+ */
+- (void)checkAndUpdateUnsentReportsWithCompletion:(void (^)(FIRCrashlyticsReport *))completion
+    NS_SWIFT_NAME(checkAndUpdateUnsentReports(completion:));
+//
+//- (void)checkAndUpdateUnsentReportWithCompletion:
+//    (void (^)(FIRCrashlyticsReport *))completion
+//    NS_SWIFT_NAME(checkAndUpdateUnsentReports(completion:));
 /**
  * Enqueues any unsent reports on the device to upload to Crashlytics.
  *
