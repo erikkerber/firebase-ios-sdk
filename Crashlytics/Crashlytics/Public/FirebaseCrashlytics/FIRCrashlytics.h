@@ -199,10 +199,7 @@ NS_SWIFT_NAME(Crashlytics)
  */
 - (void)checkAndUpdateUnsentReportsWithCompletion:(void (^)(FIRCrashlyticsReport *))completion
     NS_SWIFT_NAME(checkAndUpdateUnsentReports(completion:));
-//
-//- (void)checkAndUpdateUnsentReportWithCompletion:
-//    (void (^)(FIRCrashlyticsReport *))completion
-//    NS_SWIFT_NAME(checkAndUpdateUnsentReports(completion:));
+
 /**
  * Enqueues any unsent reports on the device to upload to Crashlytics.
  *
