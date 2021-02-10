@@ -93,11 +93,6 @@ typedef NSNumber FIRCLSWrappedReportAction;
 }
 @end
 
-/**
- * This is a helper to make code using NSNumber for bools more readable.
- */
-typedef NSNumber FIRCLSWrappedBool;
-
 @interface FIRCLSReportManager () {
   FIRCLSFileManager *_fileManager;
   dispatch_queue_t _dispatchQueue;
@@ -106,7 +101,7 @@ typedef NSNumber FIRCLSWrappedBool;
 
   // A promise that will be resolved when unsent reports are found on the device, and
   // processReports: can be called to decide how to deal with them.
-  FBLPromise<FIRCLSWrappedBool *> *_unsentReportsAvailable;
+  FBLPromise<FIRCrashlyticsReport *> *_unsentReportsAvailable;
 
   // A promise that will be resolved when the user has provided an action that they want to perform
   // for all the unsent reports.
@@ -198,7 +193,8 @@ typedef NSNumber FIRCLSWrappedBool;
 //       should be sent or deleted, at which point the promise will be resolved with the action.
 - (FBLPromise<FIRCLSWrappedReportAction *> *)waitForReportAction {
   FIRCLSDebugLog(@"[Crashlytics:Crash] Notifying that unsent reports are available.");
-  [_unsentReportsAvailable fulfill:@YES];
+  FIRCrashlyticsReport *newestUnsentReport = [self.existingReportManager getNewestUnsentReport];
+  [_unsentReportsAvailable fulfill:newestUnsentReport];
 
   // If data collection gets enabled while we are waiting for an action, go ahead and send the
   // reports, and any subsequent explicit response will be ignored.
@@ -213,11 +209,12 @@ typedef NSNumber FIRCLSWrappedBool;
   return [FBLPromise race:@[ collectionEnabled, _reportActionProvided ]];
 }
 
-- (FBLPromise<FIRCLSWrappedBool *> *)checkForUnsentReports {
+- (FBLPromise<FIRCrashlyticsReport *> *)checkForUnsentReports {
   bool expectedCalled = NO;
   if (!atomic_compare_exchange_strong(&_checkForUnsentReportsCalled, &expectedCalled, YES)) {
-    FIRCLSErrorLog(@"checkForUnsentReports should only be called once per execution.");
-    return [FBLPromise resolvedWith:@NO];
+    FIRCLSErrorLog(@"Either checkForUnsentReports or checkAndUpdateUnsentReports should be called "
+                   @"once per execution.");
+    return [FBLPromise resolvedWith:nil];
   }
   return _unsentReportsAvailable;
 }
@@ -288,7 +285,7 @@ typedef NSNumber FIRCLSWrappedBool;
 
     // If data collection is enabled, the SDK will not notify the user
     // when unsent reports are available, or respect Send / DeleteUnsentReports
-    [_unsentReportsAvailable fulfill:@NO];
+    [_unsentReportsAvailable fulfill:nil];
 
   } else {
     FIRCLSDebugLog(@"Automatic data collection is disabled.");
@@ -330,7 +327,7 @@ typedef NSNumber FIRCLSWrappedBool;
              }];
     } else {
       FIRCLSDebugLog(@"[Crashlytics:Crash] There are no unsent reports.");
-      [_unsentReportsAvailable fulfill:@NO];
+      [_unsentReportsAvailable fulfill:nil];
     }
   }
 

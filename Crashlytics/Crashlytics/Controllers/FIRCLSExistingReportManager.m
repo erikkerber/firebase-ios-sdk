@@ -20,6 +20,8 @@
 #import "Crashlytics/Crashlytics/Helpers/FIRCLSLogger.h"
 #import "Crashlytics/Crashlytics/Models/FIRCLSFileManager.h"
 #import "Crashlytics/Crashlytics/Models/FIRCLSInternalReport.h"
+#import "Crashlytics/Crashlytics/Private/FIRCrashlyticsReport_Private.h"
+#import "Crashlytics/Crashlytics/Public/FirebaseCrashlytics/FIRCrashlyticsReport.h"
 
 @interface FIRCLSExistingReportManager ()
 
@@ -43,6 +45,10 @@
   _reportUploader = reportUploader;
 
   return self;
+}
+
+- (FIRCrashlyticsReport *)getNewestUnsentReport {
+  return [[FIRCrashlyticsReport alloc] initWithBla];
 }
 
 /**

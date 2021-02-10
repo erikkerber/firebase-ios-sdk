@@ -182,8 +182,9 @@ NS_SWIFT_NAME(Crashlytics)
 
 /**
  * Determines whether there are any unsent crash reports cached on the device, then calls the given
- * callback with a CrashlyticsReport object that you can use to update the unsent report. CrashlyticsReports
- * have a lot of the familiar Crashlytics methods like setting custom keys and logs.
+ * callback with a CrashlyticsReport object that you can use to update the unsent report.
+ * CrashlyticsReports have a lot of the familiar Crashlytics methods like setting custom keys and
+ * logs.
  *
  * The callback only executes if automatic data collection is disabled. You can use
  * the callback to get one-time consent from a user upon a crash, and then call
@@ -194,13 +195,14 @@ NS_SWIFT_NAME(Crashlytics)
  *  - Calling [[FIRCrashlytics crashlytics] setCrashlyticsCollectionEnabled:NO] in your app
  *  - Setting FIRApp's isDataCollectionDefaultEnabled to NO
  *
- * Not calling send/deleteUnsentReports will result in the report staying on disk, which means the same
- * CrashlyticsReport can show up in multiple runs of the app. If you want avoid duplicates, ensure there
- * was a crash on the last run of the app by checking the value of didCrashDuringPreviousExecution.
+ * Not calling send/deleteUnsentReports will result in the report staying on disk, which means the
+ * same CrashlyticsReport can show up in multiple runs of the app. If you want avoid duplicates,
+ * ensure there was a crash on the last run of the app by checking the value of
+ * didCrashDuringPreviousExecution.
  *
  * @param completion The callback that's executed once Crashlytics finishes checking for unsent
- * reports. The callback is called with the newest unsent Crashlytics Report, or nil if there are none cached
- * on disk.
+ * reports. The callback is called with the newest unsent Crashlytics Report, or nil if there are
+ * none cached on disk.
  */
 - (void)checkAndUpdateUnsentReportsWithCompletion:(void (^)(FIRCrashlyticsReport *))completion
     NS_SWIFT_NAME(checkAndUpdateUnsentReports(completion:));

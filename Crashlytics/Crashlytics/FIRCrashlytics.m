@@ -271,13 +271,20 @@ NSString *const FIRCLSGoogleTransportMappingID = @"1206";
 #pragma mark - API: Accessors
 
 - (void)checkForUnsentReportsWithCompletion:(void (^)(BOOL))completion {
-  [[self.reportManager checkForUnsentReports] then:^id _Nullable(NSNumber *_Nullable value) {
-    completion([value boolValue]);
-    return nil;
-  }];
+  [[self.reportManager checkForUnsentReports]
+      then:^id _Nullable(FIRCrashlyticsReport *_Nullable value) {
+        completion(value ? true : false);
+        return nil;
+      }];
 }
 
-- (void)checkAndUpdateUnsentReportsWithCompletion:(void (^)(FIRCrashlyticsReport *))completion {
+- (void)checkAndUpdateUnsentReportsWithCompletion:
+    (void (^)(FIRCrashlyticsReport *_Nonnull))completion {
+  [[self.reportManager checkForUnsentReports]
+      then:^id _Nullable(FIRCrashlyticsReport *_Nullable value) {
+        completion(value);
+        return nil;
+      }];
 }
 
 - (void)sendUnsentReports {

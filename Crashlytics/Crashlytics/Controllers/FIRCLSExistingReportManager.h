@@ -19,6 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 @class FIRCLSManagerData;
 @class FIRCLSReportUploader;
 @class FIRCLSDataCollectionToken;
+@class FIRCrashlyticsReport;
 
 @interface FIRCLSExistingReportManager : NSObject
 
@@ -27,6 +28,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)init NS_UNAVAILABLE;
 + (instancetype)new NS_UNAVAILABLE;
+
+- (FIRCrashlyticsReport *)getNewestUnsentReport;
 
 - (int)unsentReportsCountWithPreexisting:(NSArray<NSString *> *)paths;
 
