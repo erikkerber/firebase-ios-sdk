@@ -278,7 +278,6 @@ NSString *const FIRCLSGoogleTransportMappingID = @"1206";
 }
 
 - (void)checkAndUpdateUnsentReportsWithCompletion:(void (^)(FIRCrashlyticsReport *))completion {
-
 }
 
 - (void)sendUnsentReports {
