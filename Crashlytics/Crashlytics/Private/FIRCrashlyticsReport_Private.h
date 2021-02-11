@@ -24,7 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
  **/
 @interface FIRCrashlyticsReport (Private)
 
-- (instancetype)initWithBla;
+- (instancetype)initWithInternalReport:(FIRCLSInternalReport *)internalReport;
 
 @end
 

@@ -204,7 +204,7 @@ NS_SWIFT_NAME(Crashlytics)
  * reports. The callback is called with the newest unsent Crashlytics Report, or nil if there are
  * none cached on disk.
  */
-- (void)checkAndUpdateUnsentReportsWithCompletion:(void (^)(FIRCrashlyticsReport *))completion
+- (void)checkAndUpdateUnsentReportsWithCompletion:(void (^)(FIRCrashlyticsReport *_Nullable))completion
     NS_SWIFT_NAME(checkAndUpdateUnsentReports(completion:));
 
 /**

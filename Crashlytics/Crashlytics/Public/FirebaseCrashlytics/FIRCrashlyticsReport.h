@@ -13,6 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
  * The Firebase Crashlytics Report provides a way to read and write information
  * to a past Crashlytics reports. A common use case is gathering end-user feedback
  * on the next run of the app.
+ *
+ * The CrashlyticsReport should be modified before calling send/deleteUnsentReports.
  */
 NS_SWIFT_NAME(CrashlyticsReport)
 @interface FIRCrashlyticsReport : NSObject

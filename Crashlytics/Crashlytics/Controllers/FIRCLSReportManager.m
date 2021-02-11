@@ -191,9 +191,8 @@ typedef NSNumber FIRCLSWrappedReportAction;
 //    1. Data collection becomes enabled, in which case, the promise will be resolved with Send.
 //    2. The developer uses the processCrashReports API to indicate whether the report
 //       should be sent or deleted, at which point the promise will be resolved with the action.
-- (FBLPromise<FIRCLSWrappedReportAction *> *)waitForReportAction {
+- (FBLPromise<FIRCLSWrappedReportAction *> *)waitForReportAction:(FIRCrashlyticsReport *)newestUnsentReport {
   FIRCLSDebugLog(@"[Crashlytics:Crash] Notifying that unsent reports are available.");
-  FIRCrashlyticsReport *newestUnsentReport = [self.existingReportManager getNewestUnsentReport];
   [_unsentReportsAvailable fulfill:newestUnsentReport];
 
   // If data collection gets enabled while we are waiting for an action, go ahead and send the
@@ -248,9 +247,7 @@ typedef NSNumber FIRCLSWrappedReportAction;
     return [FBLPromise resolvedWith:@NO];
   }
 
-  // Grab existing reports
   BOOL launchFailure = [self.launchMarker checkForAndCreateLaunchMarker];
-  NSArray *preexistingReportPaths = _fileManager.activePathContents;
 
   FIRCLSInternalReport *report = [self setupCurrentReport:executionIdentifier];
   if (!report) {
@@ -280,7 +277,6 @@ typedef NSNumber FIRCLSWrappedReportAction;
     [self beginSettingsWithToken:dataCollectionToken];
 
     [self beginReportUploadsWithToken:dataCollectionToken
-               preexistingReportPaths:preexistingReportPaths
                          blockingSend:launchFailure];
 
     // If data collection is enabled, the SDK will not notify the user
@@ -290,17 +286,13 @@ typedef NSNumber FIRCLSWrappedReportAction;
   } else {
     FIRCLSDebugLog(@"Automatic data collection is disabled.");
 
-    // TODO: This counting of the file system happens on the main thread. Now that some of the other
-    // work below has been made async and moved to the dispatch queue, maybe we can move this code
-    // to the dispatch queue as well.
-    int unsentReportsCount =
-        [self.existingReportManager unsentReportsCountWithPreexisting:preexistingReportPaths];
+    int unsentReportsCount = self.existingReportManager.numUnsentReports;
     if (unsentReportsCount > 0) {
       FIRCLSDebugLog(
           @"[Crashlytics:Crash] %d unsent reports are available. Checking for upload permission.",
           unsentReportsCount);
       // Wait for an action to get sent, either from processReports: or automatic data collection.
-      promise = [[self waitForReportAction]
+      promise = [[self waitForReportAction:self.existingReportManager.newestUnsentReport]
           onQueue:_dispatchQueue
              then:^id _Nullable(FIRCLSWrappedReportAction *_Nullable wrappedAction) {
                // Process the actions for the reports on disk.
@@ -313,13 +305,11 @@ typedef NSNumber FIRCLSWrappedReportAction;
                  [self beginSettingsWithToken:dataCollectionToken];
 
                  [self beginReportUploadsWithToken:dataCollectionToken
-                            preexistingReportPaths:preexistingReportPaths
                                       blockingSend:NO];
 
                } else if (action == FIRCLSReportActionDelete) {
                  FIRCLSDebugLog(@"Deleting unsent reports.");
-                 [self.existingReportManager
-                     deleteUnsentReportsWithPreexisting:preexistingReportPaths];
+                 [self.existingReportManager deleteUnsentReports];
                } else {
                  FIRCLSErrorLog(@"Unknown report action: %d", action);
                }
@@ -385,17 +375,14 @@ typedef NSNumber FIRCLSWrappedReportAction;
 }
 
 - (void)beginReportUploadsWithToken:(FIRCLSDataCollectionToken *)token
-             preexistingReportPaths:(NSArray *)preexistingReportPaths
                        blockingSend:(BOOL)blockingSend {
   if (self.settings.collectReportsEnabled) {
-    [self.existingReportManager processExistingReportPaths:preexistingReportPaths
-                                       dataCollectionToken:token
+    [self.existingReportManager sendUnsentReportsWithToken:token
                                                   asUrgent:blockingSend];
-    [self.existingReportManager handleContentsInOtherReportingDirectoriesWithToken:token];
 
   } else {
     FIRCLSInfoLog(@"Collect crash reports is disabled");
-    [self.existingReportManager deleteUnsentReportsWithPreexisting:preexistingReportPaths];
+    [self.existingReportManager deleteUnsentReports];
   }
 }
 

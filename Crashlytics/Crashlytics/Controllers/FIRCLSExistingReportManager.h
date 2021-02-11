@@ -23,23 +23,23 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface FIRCLSExistingReportManager : NSObject
 
+/**
+ * Returns the number of unsent reports on the device, ignoring reports in
+ * the active folder that have needsToBeSubmitted == false.
+ */
+@property (nonatomic, readonly) NSUInteger numUnsentReports;
+@property (nonatomic, readonly) FIRCrashlyticsReport * newestUnsentReport;
+
 - (instancetype)initWithManagerData:(FIRCLSManagerData *)managerData
                      reportUploader:(FIRCLSReportUploader *)reportUploader;
 
 - (instancetype)init NS_UNAVAILABLE;
 + (instancetype)new NS_UNAVAILABLE;
 
-- (FIRCrashlyticsReport *)getNewestUnsentReport;
+- (void)deleteUnsentReports;
 
-- (int)unsentReportsCountWithPreexisting:(NSArray<NSString *> *)paths;
-
-- (void)deleteUnsentReportsWithPreexisting:(NSArray *)preexistingReportPaths;
-
-- (void)processExistingReportPaths:(NSArray *)reportPaths
-               dataCollectionToken:(FIRCLSDataCollectionToken *)dataCollectionToken
+- (void)sendUnsentReportsWithToken:(FIRCLSDataCollectionToken *)dataCollectionToken
                           asUrgent:(BOOL)urgent;
-
-- (void)handleContentsInOtherReportingDirectoriesWithToken:(FIRCLSDataCollectionToken *)token;
 
 @end
 
