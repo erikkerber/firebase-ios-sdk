@@ -52,19 +52,23 @@
   // This is important to grab once early in startup because after this
   // has executed the new crash report for this session will be created
   // and start to reflect in activePathContents.
-  _existingUnemptyActiveReportPaths = [self getUnemptyExistingActiveReportsAndDeleteEmpty:self.fileManager.activePathContents];
+  _existingUnemptyActiveReportPaths =
+      [self getUnemptyExistingActiveReportsAndDeleteEmpty:self.fileManager.activePathContents];
   _processingReportPaths = self.fileManager.processingPathContents;
   _preparedReportPaths = self.fileManager.preparedPathContents;
 
   return self;
 }
 
-NSInteger compareNewer(FIRCLSInternalReport *reportA, FIRCLSInternalReport *reportB, void *context) {
+NSInteger compareNewer(FIRCLSInternalReport *reportA,
+                       FIRCLSInternalReport *reportB,
+                       void *context) {
   return [reportA.dateCreated compare:reportB.dateCreated];
 }
 
 - (FIRCLSInternalReport *_Nullable)getNewestUnsentInternalReport {
-  NSMutableArray<NSString *> *allReportPaths = [NSMutableArray arrayWithArray:self.existingUnemptyActiveReportPaths];
+  NSMutableArray<NSString *> *allReportPaths =
+      [NSMutableArray arrayWithArray:self.existingUnemptyActiveReportPaths];
   [allReportPaths addObjectsFromArray:self.processingReportPaths];
   [allReportPaths addObjectsFromArray:self.preparedReportPaths];
 
@@ -106,7 +110,7 @@ NSInteger compareNewer(FIRCLSInternalReport *reportA, FIRCLSInternalReport *repo
 }
 
 - (void)sendUnsentReportsWithToken:(FIRCLSDataCollectionToken *)dataCollectionToken
-                               asUrgent:(BOOL)urgent {
+                          asUrgent:(BOOL)urgent {
   for (NSString *path in self.existingUnemptyActiveReportPaths) {
     [self processExistingActiveReportPath:path
                       dataCollectionToken:dataCollectionToken

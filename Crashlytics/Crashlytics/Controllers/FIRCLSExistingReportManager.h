@@ -27,8 +27,8 @@ NS_ASSUME_NONNULL_BEGIN
  * Returns the number of unsent reports on the device, ignoring reports in
  * the active folder that have needsToBeSubmitted == false.
  */
-@property (nonatomic, readonly) NSUInteger numUnsentReports;
-@property (nonatomic, readonly) FIRCrashlyticsReport * newestUnsentReport;
+@property(nonatomic, readonly) NSUInteger numUnsentReports;
+@property(nonatomic, readonly) FIRCrashlyticsReport *newestUnsentReport;
 
 - (instancetype)initWithManagerData:(FIRCLSManagerData *)managerData
                      reportUploader:(FIRCLSReportUploader *)reportUploader;

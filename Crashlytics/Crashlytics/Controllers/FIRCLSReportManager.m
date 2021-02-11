@@ -191,7 +191,8 @@ typedef NSNumber FIRCLSWrappedReportAction;
 //    1. Data collection becomes enabled, in which case, the promise will be resolved with Send.
 //    2. The developer uses the processCrashReports API to indicate whether the report
 //       should be sent or deleted, at which point the promise will be resolved with the action.
-- (FBLPromise<FIRCLSWrappedReportAction *> *)waitForReportAction:(FIRCrashlyticsReport *)newestUnsentReport {
+- (FBLPromise<FIRCLSWrappedReportAction *> *)waitForReportAction:
+    (FIRCrashlyticsReport *)newestUnsentReport {
   FIRCLSDebugLog(@"[Crashlytics:Crash] Notifying that unsent reports are available.");
   [_unsentReportsAvailable fulfill:newestUnsentReport];
 
@@ -276,8 +277,7 @@ typedef NSNumber FIRCLSWrappedReportAction;
 
     [self beginSettingsWithToken:dataCollectionToken];
 
-    [self beginReportUploadsWithToken:dataCollectionToken
-                         blockingSend:launchFailure];
+    [self beginReportUploadsWithToken:dataCollectionToken blockingSend:launchFailure];
 
     // If data collection is enabled, the SDK will not notify the user
     // when unsent reports are available, or respect Send / DeleteUnsentReports
@@ -304,8 +304,7 @@ typedef NSNumber FIRCLSWrappedReportAction;
 
                  [self beginSettingsWithToken:dataCollectionToken];
 
-                 [self beginReportUploadsWithToken:dataCollectionToken
-                                      blockingSend:NO];
+                 [self beginReportUploadsWithToken:dataCollectionToken blockingSend:NO];
 
                } else if (action == FIRCLSReportActionDelete) {
                  FIRCLSDebugLog(@"Deleting unsent reports.");
@@ -377,8 +376,7 @@ typedef NSNumber FIRCLSWrappedReportAction;
 - (void)beginReportUploadsWithToken:(FIRCLSDataCollectionToken *)token
                        blockingSend:(BOOL)blockingSend {
   if (self.settings.collectReportsEnabled) {
-    [self.existingReportManager sendUnsentReportsWithToken:token
-                                                  asUrgent:blockingSend];
+    [self.existingReportManager sendUnsentReportsWithToken:token asUrgent:blockingSend];
 
   } else {
     FIRCLSInfoLog(@"Collect crash reports is disabled");
