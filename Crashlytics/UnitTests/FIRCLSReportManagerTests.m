@@ -233,9 +233,6 @@
   [[[self.reportManager checkForUnsentReports]
       then:^id _Nullable(FIRCrashlyticsReport *_Nullable report) {
         reportsAvailable = report ? true : false;
-        if (!reportsAvailable) {
-          return nil;
-        }
         if (send) {
           return [self->_reportManager sendUnsentReports];
         } else {
@@ -481,10 +478,14 @@
                  @"Processing should still have the report");
   XCTAssertEqual([self.prepareAndSubmitReportArray count], 0);
 
-  [self processReports:YES];
+  // We don't expect reports here because we don't consider processing or prepared
+  // reports as unsent as they need to be marked for sending before being placed
+  // in those directories.
+  [self processReports:YES andExpectReports:NO];
 
   // We should not process reports left over in processing.
   XCTAssertEqual([[self contentsOfProcessingPath] count], 0, @"Processing should be cleared");
+  XCTAssertEqual([[self contentsOfPreparedPath] count], 0, @"Prepared should be cleared");
 
   XCTAssertEqual([self.prepareAndSubmitReportArray count], 1);
   XCTAssertEqualObjects(self.prepareAndSubmitReportArray[0][@"process"], @(NO));
@@ -504,7 +505,7 @@
 
   [self startReportManager];
 
-  // We should not process reports left over in prepared.
+  // Reports should be moved out of prepared
   XCTAssertEqual([[self contentsOfPreparedPath] count], 0, @"Prepared should be cleared");
 
   XCTAssertEqual([self.prepareAndSubmitReportArray count], 0);
@@ -530,10 +531,14 @@
                  @"Prepared should still have the report");
   XCTAssertEqual([self.prepareAndSubmitReportArray count], 0);
 
-  [self processReports:YES];
+  // We don't expect reports here because we don't consider processing or prepared
+  // reports as unsent as they need to be marked for sending before being placed
+  // in those directories.
+  [self processReports:YES andExpectReports:NO];
 
-  // we should not process reports left over in processing
+  // Reports should be moved out of prepared
   XCTAssertEqual([[self contentsOfPreparedPath] count], 0, @"Prepared should be cleared");
+  XCTAssertEqual([[self contentsOfProcessingPath] count], 0, @"Processing should be cleared");
 
   XCTAssertEqual([self.prepareAndSubmitReportArray count], 0);
   XCTAssertEqual([self.uploadReportArray count], 1);

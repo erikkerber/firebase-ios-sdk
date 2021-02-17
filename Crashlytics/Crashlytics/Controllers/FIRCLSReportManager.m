@@ -295,6 +295,7 @@ typedef NSNumber FIRCLSWrappedReportAction;
     promise = [[self waitForReportAction]
         onQueue:_dispatchQueue
            then:^id _Nullable(FIRCLSWrappedReportAction *_Nullable wrappedAction) {
+      
              // Process the actions for the reports on disk.
              FIRCLSReportAction action = [wrappedAction reportActionValue];
              if (action == FIRCLSReportActionSend) {
