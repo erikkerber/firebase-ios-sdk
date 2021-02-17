@@ -287,8 +287,8 @@ typedef NSNumber FIRCLSWrappedReportAction;
 
   } else {
     FIRCLSDebugLog(@"Automatic data collection is disabled.");
-    FIRCLSDebugLog(
-        @"[Crashlytics:Crash] %d unsent reports are available. Waiting for send/deleteUnsentReports to be called.",
+    FIRCLSDebugLog(@"[Crashlytics:Crash] %d unsent reports are available. Waiting for "
+                   @"send/deleteUnsentReports to be called.",
                    self.existingReportManager.numUnsentReports);
 
     // Wait for an action to get sent, either from processReports: or automatic data collection.

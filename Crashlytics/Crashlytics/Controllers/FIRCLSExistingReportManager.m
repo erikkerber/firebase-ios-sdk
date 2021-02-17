@@ -174,7 +174,6 @@ NSInteger compareOlder(FIRCLSInternalReport *reportA,
   }];
 }
 
-
 - (void)deleteUnsentReports {
   NSArray<NSString *> *reportPaths = @[];
   reportPaths = [reportPaths arrayByAddingObjectsFromArray:self.existingUnemptyActiveReportPaths];

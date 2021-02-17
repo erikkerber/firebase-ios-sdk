@@ -43,7 +43,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, readonly) NSUInteger numUnsentReports;
 
 /**
- * This value needs to stay in sync with numUnsentReports, so if there is > 0 numUnsentReports, newestUnsentReport needs to return a value. Otherwise it needs to return null.
+ * This value needs to stay in sync with numUnsentReports, so if there is > 0 numUnsentReports,
+ * newestUnsentReport needs to return a value. Otherwise it needs to return null.
  */
 @property(nonatomic, readonly) FIRCrashlyticsReport *_Nullable newestUnsentReport;
 

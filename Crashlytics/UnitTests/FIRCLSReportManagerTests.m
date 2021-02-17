@@ -230,17 +230,18 @@
   XCTestExpectation *processReportsComplete =
       [[XCTestExpectation alloc] initWithDescription:@"processReports: complete"];
   __block BOOL reportsAvailable = NO;
-  [[[self.reportManager checkForUnsentReports] then:^id _Nullable(FIRCrashlyticsReport *_Nullable report) {
-    reportsAvailable = report ? true : false;
-    if (!reportsAvailable) {
-      return nil;
-    }
-    if (send) {
-      return [self->_reportManager sendUnsentReports];
-    } else {
-      return [self->_reportManager deleteUnsentReports];
-    }
-  }] then:^id _Nullable(id _Nullable ignored) {
+  [[[self.reportManager checkForUnsentReports]
+      then:^id _Nullable(FIRCrashlyticsReport *_Nullable report) {
+        reportsAvailable = report ? true : false;
+        if (!reportsAvailable) {
+          return nil;
+        }
+        if (send) {
+          return [self->_reportManager sendUnsentReports];
+        } else {
+          return [self->_reportManager deleteUnsentReports];
+        }
+      }] then:^id _Nullable(id _Nullable ignored) {
     [processReportsComplete fulfill];
     return nil;
   }];
