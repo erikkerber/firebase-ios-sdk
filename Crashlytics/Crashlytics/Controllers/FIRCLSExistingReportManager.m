@@ -111,9 +111,6 @@ NSInteger compareOlder(FIRCLSInternalReport *reportA,
 
 - (void)sendUnsentReportsWithToken:(FIRCLSDataCollectionToken *)dataCollectionToken
                           asUrgent:(BOOL)urgent {
-
-
-  
   for (NSString *path in self.existingUnemptyActiveReportPaths) {
     [self processExistingActiveReportPath:path
                       dataCollectionToken:dataCollectionToken
