@@ -191,10 +191,9 @@ typedef NSNumber FIRCLSWrappedReportAction;
 //    1. Data collection becomes enabled, in which case, the promise will be resolved with Send.
 //    2. The developer uses the processCrashReports API to indicate whether the report
 //       should be sent or deleted, at which point the promise will be resolved with the action.
-- (FBLPromise<FIRCLSWrappedReportAction *> *)waitForReportAction:
-    (FIRCrashlyticsReport *)newestUnsentReport {
-  FIRCLSDebugLog(@"[Crashlytics:Crash] Notifying that unsent reports are available.");
-  [_unsentReportsAvailable fulfill:newestUnsentReport];
+- (FBLPromise<FIRCLSWrappedReportAction *> *)waitForReportAction {
+  FIRCrashlyticsReport *unsentReport = self.existingReportManager.newestUnsentReport;
+  [_unsentReportsAvailable fulfill:unsentReport];
 
   // If data collection gets enabled while we are waiting for an action, go ahead and send the
   // reports, and any subsequent explicit response will be ignored.
@@ -204,7 +203,6 @@ typedef NSNumber FIRCLSWrappedReportAction;
             return @(FIRCLSReportActionSend);
           }];
 
-  FIRCLSDebugLog(@"[Crashlytics:Crash] Waiting for send/deleteUnsentReports to be called.");
   // Wait for either the processReports callback to be called, or data collection to be enabled.
   return [FBLPromise race:@[ collectionEnabled, _reportActionProvided ]];
 }
@@ -235,6 +233,10 @@ typedef NSNumber FIRCLSWrappedReportAction;
   // This needs to be called before any values are read from settings
   NSTimeInterval currentTimestamp = [NSDate timeIntervalSinceReferenceDate];
   [self.settings reloadFromCacheWithGoogleAppID:self.googleAppID currentTimestamp:currentTimestamp];
+
+  // This needs to be called before the new report is created for
+  // this run of the app.
+  [self.existingReportManager collectExistingReports];
 
   if (![self validateAppIdentifiers]) {
     return [FBLPromise resolvedWith:@NO];
@@ -285,39 +287,33 @@ typedef NSNumber FIRCLSWrappedReportAction;
 
   } else {
     FIRCLSDebugLog(@"Automatic data collection is disabled.");
+    FIRCLSDebugLog(
+        @"[Crashlytics:Crash] %d unsent reports are available. Waiting for send/deleteUnsentReports to be called.",
+                   self.existingReportManager.numUnsentReports);
 
-    int unsentReportsCount = self.existingReportManager.numUnsentReports;
-    if (unsentReportsCount > 0) {
-      FIRCLSDebugLog(
-          @"[Crashlytics:Crash] %d unsent reports are available. Checking for upload permission.",
-          unsentReportsCount);
-      // Wait for an action to get sent, either from processReports: or automatic data collection.
-      promise = [[self waitForReportAction:self.existingReportManager.newestUnsentReport]
-          onQueue:_dispatchQueue
-             then:^id _Nullable(FIRCLSWrappedReportAction *_Nullable wrappedAction) {
-               // Process the actions for the reports on disk.
-               FIRCLSReportAction action = [wrappedAction reportActionValue];
-               if (action == FIRCLSReportActionSend) {
-                 FIRCLSDebugLog(@"Sending unsent reports.");
-                 FIRCLSDataCollectionToken *dataCollectionToken =
-                     [FIRCLSDataCollectionToken validToken];
+    // Wait for an action to get sent, either from processReports: or automatic data collection.
+    promise = [[self waitForReportAction]
+        onQueue:_dispatchQueue
+           then:^id _Nullable(FIRCLSWrappedReportAction *_Nullable wrappedAction) {
+             // Process the actions for the reports on disk.
+             FIRCLSReportAction action = [wrappedAction reportActionValue];
+             if (action == FIRCLSReportActionSend) {
+               FIRCLSDebugLog(@"Sending unsent reports.");
+               FIRCLSDataCollectionToken *dataCollectionToken =
+                   [FIRCLSDataCollectionToken validToken];
 
-                 [self beginSettingsWithToken:dataCollectionToken];
+               [self beginSettingsWithToken:dataCollectionToken];
 
-                 [self beginReportUploadsWithToken:dataCollectionToken blockingSend:NO];
+               [self beginReportUploadsWithToken:dataCollectionToken blockingSend:NO];
 
-               } else if (action == FIRCLSReportActionDelete) {
-                 FIRCLSDebugLog(@"Deleting unsent reports.");
-                 [self.existingReportManager deleteUnsentReports];
-               } else {
-                 FIRCLSErrorLog(@"Unknown report action: %d", action);
-               }
-               return @(report != nil);
-             }];
-    } else {
-      FIRCLSDebugLog(@"[Crashlytics:Crash] There are no unsent reports.");
-      [_unsentReportsAvailable fulfill:nil];
-    }
+             } else if (action == FIRCLSReportActionDelete) {
+               FIRCLSDebugLog(@"Deleting unsent reports.");
+               [self.existingReportManager deleteUnsentReports];
+             } else {
+               FIRCLSErrorLog(@"Unknown report action: %d", action);
+             }
+             return @(report != nil);
+           }];
   }
 
   if (report != nil) {

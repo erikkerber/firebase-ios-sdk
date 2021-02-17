@@ -11,7 +11,7 @@
 
 @interface FIRCrashlyticsReport () {
   NSString *_reportID;
-  NSString *_dateCreated;
+  NSDate *_dateCreated;
   BOOL _hasCrash;
 }
 

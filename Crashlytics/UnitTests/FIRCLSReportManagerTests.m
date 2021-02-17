@@ -230,8 +230,8 @@
   XCTestExpectation *processReportsComplete =
       [[XCTestExpectation alloc] initWithDescription:@"processReports: complete"];
   __block BOOL reportsAvailable = NO;
-  [[[self.reportManager checkForUnsentReports] then:^id _Nullable(NSNumber *_Nullable value) {
-    reportsAvailable = [value boolValue];
+  [[[self.reportManager checkForUnsentReports] then:^id _Nullable(FIRCrashlyticsReport *_Nullable report) {
+    reportsAvailable = report ? true : false;
     if (!reportsAvailable) {
       return nil;
     }
@@ -257,12 +257,15 @@
 }
 
 - (void)testExistingUnimportantReportOnStart {
-  // create a report and put it in place
+  // Create a report representing the last run and put it in place
   [self createActiveReport];
 
-  // Report should get deleted, and nothing else specials should happen.
+  // Report from the last run should get deleted, and a new
+  // one should be created for this run.
   [self startReportManager];
 
+  // If this is > 1 it means we're not cleaning up reports from previous runs.
+  // If this == 0, it means we're not creating new reports.
   XCTAssertEqual([[self contentsOfActivePath] count], 1);
 
   XCTAssertEqual([self.prepareAndSubmitReportArray count], 0);
@@ -273,10 +276,8 @@
   // create a report and put it in place
   [self createActiveReport];
 
-  // Report should get deleted, and nothing else specials should happen.
-  FBLPromise<NSNumber *> *promise = [self startReportManagerWithDataCollectionEnabled:NO];
-  // It should not be necessary to call processReports, since there are no reports.
-  [self waitForPromise:promise];
+  // Starting with data collection disabled should report in nothing changing
+  [self startReportManagerWithDataCollectionEnabled:NO];
 
   XCTAssertEqual([[self contentsOfActivePath] count], 1);
 
@@ -493,7 +494,7 @@
   // Drop a phony multipart-mime file in here, with non-zero contents.
   XCTAssert([_fileManager createDirectoryAtPath:_fileManager.preparedPath]);
   NSString *path = [_fileManager.preparedPath stringByAppendingPathComponent:@"phony-report"];
-  path = [path stringByAppendingPathExtension:@".multipart-mime"];
+  path = [path stringByAppendingPathExtension:@"multipart-mime"];
 
   XCTAssertTrue([[_fileManager underlyingFileManager]
       createFileAtPath:path
@@ -514,7 +515,7 @@
   // drop a phony multipart-mime file in here, with non-zero contents
   XCTAssert([_fileManager createDirectoryAtPath:_fileManager.preparedPath]);
   NSString *path = [_fileManager.preparedPath stringByAppendingPathComponent:@"phony-report"];
-  path = [path stringByAppendingPathExtension:@".multipart-mime"];
+  path = [path stringByAppendingPathExtension:@"multipart-mime"];
 
   XCTAssertTrue([[_fileManager underlyingFileManager]
       createFileAtPath:path
@@ -542,7 +543,7 @@
   // drop a phony multipart-mime file in here, with non-zero contents
   XCTAssert([_fileManager createDirectoryAtPath:_fileManager.preparedPath]);
   NSString *path = [_fileManager.preparedPath stringByAppendingPathComponent:@"phony-report"];
-  path = [path stringByAppendingPathExtension:@".multipart-mime"];
+  path = [path stringByAppendingPathExtension:@"multipart-mime"];
 
   XCTAssertTrue([[_fileManager underlyingFileManager]
       createFileAtPath:path

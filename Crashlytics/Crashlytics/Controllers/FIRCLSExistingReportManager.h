@@ -24,11 +24,28 @@ NS_ASSUME_NONNULL_BEGIN
 @interface FIRCLSExistingReportManager : NSObject
 
 /**
- * Returns the number of unsent reports on the device, ignoring reports in
- * the active folder that have needsToBeSubmitted == false.
+ * Returns the number of unsent reports on the device, ignoring empty reports in
+ * the active folder, and ignoring any reports in "processing" or "prepared".
+ *
+ * In the past, this would count reports in the processed or prepared
+ * folders. This has been changed as reports in those paths have already
+ * been cleared for upload, so there isn't any point in asking for permission
+ * or possibly spamming end-users if a report gets stuck.
+ *
+ * The tricky part is, now customers will NOT be alerted in checkForUnsentReports
+ * for reports in these paths, but when they choose sendUnsentReports / enable data
+ * collection, reports in those directories will be re-managed. This should be ok and
+ * just an edge case because once a report is handed off to GoogleDataTransport,
+ * it is managed outside of Crashlytics data collection, and marked for upload. Reports
+ * should only be in processing or prepared for a split second as they do on-device symbolication
+ * and get converted into a GDTEvent..
  */
 @property(nonatomic, readonly) NSUInteger numUnsentReports;
-@property(nonatomic, readonly) FIRCrashlyticsReport *newestUnsentReport;
+
+/**
+ * This value needs to stay in sync with numUnsentReports, so if there is > 0 numUnsentReports, newestUnsentReport needs to return a value. Otherwise it needs to return null.
+ */
+@property(nonatomic, readonly) FIRCrashlyticsReport *_Nullable newestUnsentReport;
 
 - (instancetype)initWithManagerData:(FIRCLSManagerData *)managerData
                      reportUploader:(FIRCLSReportUploader *)reportUploader;
@@ -36,6 +53,18 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)init NS_UNAVAILABLE;
 + (instancetype)new NS_UNAVAILABLE;
 
+/**
+ * This is important to call once, early in startup, before the
+ * new report for this run of the app has been created. Any
+ * reports in ExistingReportManager will be uploaded or deleted
+ * and we don't want to do that for the current run of the app.
+ */
+- (void)collectExistingReports;
+
+/**
+ * This is the side-effect of calling deleteUnsentReports, or collect_reports setting
+ * being false.
+ */
 - (void)deleteUnsentReports;
 
 - (void)sendUnsentReportsWithToken:(FIRCLSDataCollectionToken *)dataCollectionToken

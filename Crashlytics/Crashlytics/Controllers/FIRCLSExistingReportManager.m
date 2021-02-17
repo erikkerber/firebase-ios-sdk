@@ -49,49 +49,49 @@
   _operationQueue = managerData.operationQueue;
   _reportUploader = reportUploader;
 
-  // This is important to grab once early in startup because after this
-  // has executed the new crash report for this session will be created
-  // and start to reflect in activePathContents.
-  _existingUnemptyActiveReportPaths =
-      [self getUnemptyExistingActiveReportsAndDeleteEmpty:self.fileManager.activePathContents];
-  _processingReportPaths = self.fileManager.processingPathContents;
-  _preparedReportPaths = self.fileManager.preparedPathContents;
-
   return self;
 }
 
-NSInteger compareNewer(FIRCLSInternalReport *reportA,
+NSInteger compareOlder(FIRCLSInternalReport *reportA,
                        FIRCLSInternalReport *reportB,
                        void *context) {
   return [reportA.dateCreated compare:reportB.dateCreated];
 }
 
-- (FIRCLSInternalReport *_Nullable)getNewestUnsentInternalReport {
-  NSMutableArray<NSString *> *allReportPaths =
-      [NSMutableArray arrayWithArray:self.existingUnemptyActiveReportPaths];
-  [allReportPaths addObjectsFromArray:self.processingReportPaths];
-  [allReportPaths addObjectsFromArray:self.preparedReportPaths];
-
-  NSMutableArray<FIRCLSInternalReport *> *allReports = [NSMutableArray array];
-  for (NSString *path in allReportPaths) {
-    [allReports addObject:[FIRCLSInternalReport reportWithPath:path]];
-  }
-
-  [allReports sortUsingFunction:compareNewer context:nil];
-
-  return [allReports lastObject];
+- (void)collectExistingReports {
+  self.existingUnemptyActiveReportPaths =
+      [self getUnemptyExistingActiveReportsAndDeleteEmpty:self.fileManager.activePathContents];
+  self.processingReportPaths = self.fileManager.processingPathContents;
+  self.preparedReportPaths = self.fileManager.preparedPathContents;
 }
 
 - (FIRCrashlyticsReport *)newestUnsentReport {
-  FIRCLSInternalReport *_Nullable internalReport = [self getNewestUnsentInternalReport];
+  if (self.numUnsentReports <= 0) {
+    return nil;
+  }
+
+  NSMutableArray<NSString *> *allReportPaths =
+      [NSMutableArray arrayWithArray:self.existingUnemptyActiveReportPaths];
+
+  NSMutableArray<FIRCLSInternalReport *> *validReports = [NSMutableArray array];
+  for (NSString *path in allReportPaths) {
+    FIRCLSInternalReport *_Nullable report = [FIRCLSInternalReport reportWithPath:path];
+    if (!report) {
+      continue;
+    }
+    [validReports addObject:report];
+  }
+
+  [validReports sortUsingFunction:compareOlder context:nil];
+
+  FIRCLSInternalReport *_Nullable internalReport = [validReports lastObject];
   return [[FIRCrashlyticsReport alloc] initWithInternalReport:internalReport];
 }
 
 - (NSUInteger)numUnsentReports {
-  NSUInteger count = self.existingUnemptyActiveReportPaths.count;
-  count += self.processingReportPaths.count;
-  count += self.preparedReportPaths.count;
-  return count;
+  // There are nuances about why we only count active reports.
+  // See the header comment for more information.
+  return self.existingUnemptyActiveReportPaths.count;
 }
 
 - (NSArray *)getUnemptyExistingActiveReportsAndDeleteEmpty:(NSArray *)reportPaths {
@@ -102,7 +102,7 @@ NSInteger compareNewer(FIRCLSInternalReport *reportA,
       [unemptyReports addObject:path];
     } else {
       [self.operationQueue addOperationWithBlock:^{
-        [self->_fileManager removeItemAtPath:path];
+        [self.fileManager removeItemAtPath:path];
       }];
     }
   }
@@ -148,10 +148,10 @@ NSInteger compareNewer(FIRCLSInternalReport *reportA,
                                asUrgent:(BOOL)urgent {
   FIRCLSInternalReport *report = [FIRCLSInternalReport reportWithPath:path];
 
-  // TODO: needsToBeSubmitted should really be called on the background queue.
+  // TODO: hasAnyEvents should really be called on the background queue.
   if (![report hasAnyEvents]) {
     [self.operationQueue addOperationWithBlock:^{
-      [self->_fileManager removeItemAtPath:path];
+      [self.fileManager removeItemAtPath:path];
     }];
 
     return;
@@ -174,15 +174,13 @@ NSInteger compareNewer(FIRCLSInternalReport *reportA,
   }];
 }
 
-// This is the side-effect of calling deleteUnsentReports, or collect_reports setting
-// being false
-- (void)deleteUnsentReports {
-  [self removeExistingReportPaths:self.existingUnemptyActiveReportPaths];
-  [self removeExistingReportPaths:self.fileManager.processingPathContents];
-  [self removeExistingReportPaths:self.fileManager.preparedPathContents];
-}
 
-- (void)removeExistingReportPaths:(NSArray *)reportPaths {
+- (void)deleteUnsentReports {
+  NSArray<NSString *> *reportPaths = @[];
+  reportPaths = [reportPaths arrayByAddingObjectsFromArray:self.existingUnemptyActiveReportPaths];
+  reportPaths = [reportPaths arrayByAddingObjectsFromArray:self.processingReportPaths];
+  reportPaths = [reportPaths arrayByAddingObjectsFromArray:self.preparedReportPaths];
+
   [self.operationQueue addOperationWithBlock:^{
     for (NSString *path in reportPaths) {
       [self.fileManager removeItemAtPath:path];
