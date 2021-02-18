@@ -64,30 +64,30 @@
 }
 
 - (void)logWithFormat:(NSString *)format, ... {
-//  va_list args;
-//  va_start(args, format);
-//  [self logWithFormat:format arguments:args];
-//  va_end(args);
+  //  va_list args;
+  //  va_start(args, format);
+  //  [self logWithFormat:format arguments:args];
+  //  va_end(args);
 }
 
 - (void)logWithFormat:(NSString *)format arguments:(va_list)args {
-//  [self log:[[NSString alloc] initWithFormat:format arguments:args]];
+  //  [self log:[[NSString alloc] initWithFormat:format arguments:args]];
 }
 
 #pragma mark - API: setUserID
 
 - (void)setUserID:(NSString *)userID {
-//  FIRCLSUserLoggingRecordInternalKeyValue(FIRCLSUserIdentifierKey, userID);
+  //  FIRCLSUserLoggingRecordInternalKeyValue(FIRCLSUserIdentifierKey, userID);
 }
 
 #pragma mark - API: setCustomValue
 
 - (void)setCustomValue:(id)value forKey:(NSString *)key {
-//  FIRCLSUserLoggingRecordUserKeyValue(key, value);
+  //  FIRCLSUserLoggingRecordUserKeyValue(key, value);
 }
 
 - (void)setCustomKeysAndValues:(NSDictionary *)keysAndValues {
-//  FIRCLSUserLoggingRecordUserKeysAndValues(keysAndValues);
+  //  FIRCLSUserLoggingRecordUserKeysAndValues(keysAndValues);
 }
 
 @end
