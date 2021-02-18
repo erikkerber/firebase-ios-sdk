@@ -60,8 +60,7 @@
                                         attributes:nil];
 
   // with A and B, also needs
-  XCTAssert(report.hasAnyEvents,
-            @"with both thehasAnyEventsA and B files present, needs to be submitted");
+  XCTAssert(report.hasAnyEvents, @"with both the A and B files present, needs to be submitted");
 
   XCTAssert([[NSFileManager defaultManager] removeItemAtPath:customAPath error:nil]);
   XCTAssert(report.hasAnyEvents, @"with the B file present, needs to be submitted");

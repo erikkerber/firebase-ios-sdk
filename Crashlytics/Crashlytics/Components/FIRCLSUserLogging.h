@@ -101,7 +101,6 @@ void FIRCLSUserLoggingWriteAndCheckABFiles(FIRCLSUserLoggingABStorage* storage,
 NSArray* FIRCLSUserLoggingStoredKeyValues(const char* path);
 
 OBJC_EXTERN void FIRCLSLog(NSString* format, ...) NS_FORMAT_FUNCTION(1, 2);
-
 OBJC_EXTERN void FIRCLSLogToStorage(FIRCLSUserLoggingABStorage* storage, NSString* format, ...)
     NS_FORMAT_FUNCTION(2, 3);
 

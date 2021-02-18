@@ -26,6 +26,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype)initWithInternalReport:(FIRCLSInternalReport *)internalReport;
 
+@property(nonatomic, strong) FIRCLSInternalReport *internalReport;
+
 @end
 
 NS_ASSUME_NONNULL_END

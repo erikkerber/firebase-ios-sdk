@@ -19,14 +19,14 @@
 #import "Crashlytics/Crashlytics/Components/FIRCLSGlobals.h"
 #import "Crashlytics/Crashlytics/Helpers/FIRCLSFile.h"
 #import "Crashlytics/Crashlytics/Models/FIRCLSInternalReport.h"
-#import "Crashlytics/Crashlytics/Models/FIRCLSReport.h"
-#import "Crashlytics/Crashlytics/Models/FIRCLSReport_Private.h"
+#import "Crashlytics/Crashlytics/Private/FIRCrashlyticsReport_Private.h"
+#import "Crashlytics/Crashlytics/Public/FirebaseCrashlytics/FIRCrashlyticsReport.h"
 
-@interface FIRCLSReportTests : XCTestCase
+@interface FIRCrashlyticsReportTests : XCTestCase
 
 @end
 
-@implementation FIRCLSReportTests
+@implementation FIRCrashlyticsReportTests
 
 - (void)setUp {
   [super setUp];
@@ -69,29 +69,27 @@
   return [[FIRCLSInternalReport alloc] initWithPath:tempPath];
 }
 
-- (FIRCLSReport *)createTempCopyOfReportWithName:(NSString *)name {
+- (FIRCrashlyticsReport *)createTempCopyOfReportWithName:(NSString *)name {
   FIRCLSInternalReport *internalReport = [self createTempCopyOfInternalReportWithName:name];
+  if (!internalReport) {
+    XCTAssertTrue(false);
+  }
 
-  return [[FIRCLSReport alloc] initWithInternalReport:internalReport];
+  return [[FIRCrashlyticsReport alloc] initWithInternalReport:internalReport];
 }
 
 #pragma mark - Public Getter Methods
 - (void)testPropertiesFromMetadatFile {
-  FIRCLSReport *report = [self createTempCopyOfReportWithName:@"metadata_only_report"];
+  FIRCrashlyticsReport *report = [self createTempCopyOfReportWithName:@"metadata_only_report"];
 
-  XCTAssertEqualObjects(@"772929a7f21f4ad293bb644668f257cd", report.identifier);
-  XCTAssertEqualObjects(@"3", report.bundleVersion);
-  XCTAssertEqualObjects(@"1.0", report.bundleShortVersionString);
   XCTAssertEqualObjects([NSDate dateWithTimeIntervalSince1970:1423944888], report.dateCreated);
-  XCTAssertEqualObjects(@"14C109", report.OSBuildVersion);
-  XCTAssertEqualObjects(@"10.10.2", report.OSVersion);
 }
 
 #pragma mark - Public Setter Methods
 - (void)testSetUserProperties {
-  FIRCLSReport *report = [self createTempCopyOfReportWithName:@"metadata_only_report"];
+  FIRCrashlyticsReport *report = [self createTempCopyOfReportWithName:@"metadata_only_report"];
 
-  [report setUserIdentifier:@"12345-6"];
+  [report setUserID:@"12345-6"];
 
   NSArray *entries = FIRCLSFileReadSections(
       [[report.internalReport pathForContentFile:FIRCLSReportInternalIncrementalKVFile]
@@ -106,10 +104,10 @@
 }
 
 - (void)testSetKeyValuesWhenNoneWerePresent {
-  FIRCLSReport *report = [self createTempCopyOfReportWithName:@"metadata_only_report"];
+  FIRCrashlyticsReport *report = [self createTempCopyOfReportWithName:@"metadata_only_report"];
 
-  [report setObjectValue:@"hello" forKey:@"mykey"];
-  [report setObjectValue:@"goodbye" forKey:@"anotherkey"];
+  [report setCustomValue:@"hello" forKey:@"mykey"];
+  [report setCustomValue:@"goodbye" forKey:@"anotherkey"];
 
   NSArray *entries = FIRCLSFileReadSections(
       [[report.internalReport pathForContentFile:FIRCLSReportUserIncrementalKVFile]

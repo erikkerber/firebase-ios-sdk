@@ -26,6 +26,8 @@
   FIRCLSUserLoggingKVStorage _userKVStorage;
 }
 
+@property(nonatomic, strong) FIRCLSInternalReport *internalReport;
+
 @end
 
 @implementation FIRCrashlyticsReport
@@ -36,6 +38,7 @@
     return nil;
   }
 
+  internalReport = _internalReport;
   _reportID = [[internalReport identifier] copy];
   _dateCreated = [[internalReport dateCreated] copy];
   _hasCrash = [internalReport isCrash];
@@ -88,10 +91,21 @@
 
 + (const char *)filesystemPathForContentFile:(NSString *)contentFile
                             inInternalReport:(FIRCLSInternalReport *)internalReport {
+  if (!internalReport) {
+    return nil;
+  }
+
+  // We need to be defensive because strdup will crash
+  // if given a nil.
+  NSString *objCString = [internalReport pathForContentFile:contentFile];
+  const char *fileSystemString = [objCString fileSystemRepresentation];
+  if (!objCString || !fileSystemString) {
+    return nil;
+  }
+
   // Paths need to be duplicated because fileSystemRepresentation returns C strings
   // that are freed outside of this context.
-  NSString *objCString = [internalReport pathForContentFile:contentFile];
-  return strdup([objCString fileSystemRepresentation]);
+  return strdup(fileSystemString);
 }
 
 - (BOOL)checkContextForMethod:(NSString *)methodName {
