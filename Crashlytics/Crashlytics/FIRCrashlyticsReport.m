@@ -7,12 +7,23 @@
 
 #import "FIRCrashlyticsReport.h"
 
+#import "Crashlytics/Crashlytics/Components/FIRCLSContext.h"
+#import "Crashlytics/Crashlytics/Components/FIRCLSGlobals.h"
+#import "Crashlytics/Crashlytics/Helpers/FIRCLSLogger.h"
 #import "Crashlytics/Crashlytics/Models/FIRCLSInternalReport.h"
 
 @interface FIRCrashlyticsReport () {
   NSString *_reportID;
   NSDate *_dateCreated;
   BOOL _hasCrash;
+
+  FIRCLSUserLoggingABStorage _logStorage;
+
+  uint32_t _internalKVCounter;
+  FIRCLSUserLoggingKVStorage _internalKVStorage;
+
+  uint32_t _userKVCounter;
+  FIRCLSUserLoggingKVStorage _userKVStorage;
 }
 
 @end
@@ -29,8 +40,71 @@
   _dateCreated = [[internalReport dateCreated] copy];
   _hasCrash = [internalReport isCrash];
 
+  _logStorage.maxSize = _firclsContext.readonly->logging.logStorage.maxSize;
+  _logStorage.maxEntries = _firclsContext.readonly->logging.logStorage.maxEntries;
+  _logStorage.restrictBySize = _firclsContext.readonly->logging.logStorage.restrictBySize;
+  _logStorage.entryCount = _firclsContext.readonly->logging.logStorage.entryCount;
+  _logStorage.aPath = [FIRCrashlyticsReport filesystemPathForContentFile:FIRCLSReportLogAFile
+                                                        inInternalReport:internalReport];
+  _logStorage.bPath = [FIRCrashlyticsReport filesystemPathForContentFile:FIRCLSReportLogBFile
+                                                        inInternalReport:internalReport];
+
+  // TODO: correct kv accounting
+  // TODO: correct kv accounting
+  // TODO: correct kv accounting
+  // TODO: correct kv accounting
+  // TODO: correct kv accounting
+  // TODO: correct kv accounting
+  // TODO: correct kv accounting
+  // The internal report will have non-zero compacted and incremental keys. The right thing to do
+  // is count them, so we can kick off compactions/pruning at the right times. By
+  // setting this value to zero, we're allowing more entries to be made than there really
+  // should be. Not the end of the world, but we should do better eventually.
+  _internalKVCounter = 0;
+  _userKVCounter = 0;
+
+  _userKVStorage.maxCount = _firclsContext.readonly->logging.userKVStorage.maxCount;
+  _userKVStorage.maxIncrementalCount =
+      _firclsContext.readonly->logging.userKVStorage.maxIncrementalCount;
+  _userKVStorage.compactedPath =
+      [FIRCrashlyticsReport filesystemPathForContentFile:FIRCLSReportUserCompactedKVFile
+                                        inInternalReport:internalReport];
+  _userKVStorage.incrementalPath =
+      [FIRCrashlyticsReport filesystemPathForContentFile:FIRCLSReportUserIncrementalKVFile
+                                        inInternalReport:internalReport];
+
+  _internalKVStorage.maxCount = _firclsContext.readonly->logging.internalKVStorage.maxCount;
+  _internalKVStorage.maxIncrementalCount =
+      _firclsContext.readonly->logging.internalKVStorage.maxIncrementalCount;
+  _internalKVStorage.compactedPath =
+      [FIRCrashlyticsReport filesystemPathForContentFile:FIRCLSReportInternalCompactedKVFile
+                                        inInternalReport:internalReport];
+  _internalKVStorage.incrementalPath =
+      [FIRCrashlyticsReport filesystemPathForContentFile:FIRCLSReportInternalIncrementalKVFile
+                                        inInternalReport:internalReport];
+
   return self;
 }
+
++ (const char *)filesystemPathForContentFile:(NSString *)contentFile
+                            inInternalReport:(FIRCLSInternalReport *)internalReport {
+  // Paths need to be duplicated because fileSystemRepresentation returns C strings
+  // that are freed outside of this context.
+  NSString *objCString = [internalReport pathForContentFile:contentFile];
+  return strdup([objCString fileSystemRepresentation]);
+}
+
+- (BOOL)checkContextForMethod:(NSString *)methodName {
+  if (!FIRCLSContextIsInitialized()) {
+    FIRCLSErrorLog(@"%@ failed for FIRCrashlyticsReport because Crashlytics context isn't "
+                   @"initialized.",
+                   methodName);
+    return false;
+  }
+  return true;
+}
+
+#pragma mark - API: Getters
 
 - (NSString *)reportID {
   return _reportID;
@@ -47,47 +121,59 @@
 #pragma mark - API: Logging
 
 - (void)log:(NSString *)msg {
-  // TODO
-  // TODO
-  // TODO
-  // TODO
-  // TODO
-  // TODO
-  // TODO
-  // TODO
-  //
-  // Need to:
-  //   Check that send/delete have been called, and error log
-  //   Make sure we don't move the report before calling send/delete
-  //
-  //
+  if (![self checkContextForMethod:@"log:"]) {
+    return;
+  }
+
+  FIRCLSLogToStorage(&_logStorage, @"%@", msg);
 }
 
 - (void)logWithFormat:(NSString *)format, ... {
-  //  va_list args;
-  //  va_start(args, format);
-  //  [self logWithFormat:format arguments:args];
-  //  va_end(args);
+  if (![self checkContextForMethod:@"logWithFormat:"]) {
+    return;
+  }
+
+  va_list args;
+  va_start(args, format);
+  [self logWithFormat:format arguments:args];
+  va_end(args);
 }
 
 - (void)logWithFormat:(NSString *)format arguments:(va_list)args {
-  //  [self log:[[NSString alloc] initWithFormat:format arguments:args]];
+  if (![self checkContextForMethod:@"logWithFormat:arguments:"]) {
+    return;
+  }
+
+  [self log:[[NSString alloc] initWithFormat:format arguments:args]];
 }
 
 #pragma mark - API: setUserID
 
 - (void)setUserID:(NSString *)userID {
-  //  FIRCLSUserLoggingRecordInternalKeyValue(FIRCLSUserIdentifierKey, userID);
+  if (![self checkContextForMethod:@"setUserID:"]) {
+    return;
+  }
+
+  FIRCLSUserLoggingRecordKeyValue(FIRCLSUserIdentifierKey, userID, &_internalKVStorage,
+                                  &_internalKVCounter);
 }
 
 #pragma mark - API: setCustomValue
 
 - (void)setCustomValue:(id)value forKey:(NSString *)key {
-  //  FIRCLSUserLoggingRecordUserKeyValue(key, value);
+  if (![self checkContextForMethod:@"setCustomValue:forKey:"]) {
+    return;
+  }
+
+  FIRCLSUserLoggingRecordKeyValue(key, value, &_userKVStorage, &_userKVCounter);
 }
 
 - (void)setCustomKeysAndValues:(NSDictionary *)keysAndValues {
-  //  FIRCLSUserLoggingRecordUserKeysAndValues(keysAndValues);
+  if (![self checkContextForMethod:@"setCustomKeysAndValues:"]) {
+    return;
+  }
+
+  FIRCLSUserLoggingRecordKeysAndValues(keysAndValues, &_userKVStorage, &_userKVCounter);
 }
 
 @end

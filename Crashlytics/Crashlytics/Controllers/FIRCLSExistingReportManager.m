@@ -17,7 +17,6 @@
 #import "Crashlytics/Crashlytics/Controllers/FIRCLSManagerData.h"
 #import "Crashlytics/Crashlytics/Controllers/FIRCLSReportUploader.h"
 #import "Crashlytics/Crashlytics/DataCollection/FIRCLSDataCollectionToken.h"
-#import "Crashlytics/Crashlytics/Helpers/FIRCLSLogger.h"
 #import "Crashlytics/Crashlytics/Models/FIRCLSFileManager.h"
 #import "Crashlytics/Crashlytics/Models/FIRCLSInternalReport.h"
 #import "Crashlytics/Crashlytics/Private/FIRCrashlyticsReport_Private.h"
@@ -29,7 +28,8 @@
 @property(nonatomic, strong) NSOperationQueue *operationQueue;
 @property(nonatomic, strong) FIRCLSReportUploader *reportUploader;
 
-// This excludes the new active report that is created this run of the app.
+// This list of active reports excludes the brand new active report that will be created this run of
+// the app.
 @property(nonatomic, strong) NSArray *existingUnemptyActiveReportPaths;
 @property(nonatomic, strong) NSArray *processingReportPaths;
 @property(nonatomic, strong) NSArray *preparedReportPaths;

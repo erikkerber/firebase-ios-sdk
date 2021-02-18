@@ -42,7 +42,7 @@ static void FIRCLSUserLoggingWriteKeysAndValues(NSDictionary *keysAndValues,
 static void FIRCLSUserLoggingCheckAndSwapABFiles(FIRCLSUserLoggingABStorage *storage,
                                                  const char **activePath,
                                                  off_t fileSize);
-void FIRCLSLogInternal(NSString *message);
+void FIRCLSLogInternal(FIRCLSUserLoggingABStorage *storage, NSString *message);
 
 #pragma mark - Setup
 void FIRCLSUserLoggingInit(FIRCLSUserLoggingReadOnlyContext *roContext,
@@ -396,7 +396,22 @@ void FIRCLSLog(NSString *format, ...) {
   NSString *msg = [[NSString alloc] initWithFormat:format arguments:args];
   va_end(args);
 
-  FIRCLSLogInternal(msg);
+  FIRCLSUserLoggingABStorage *currentStorage = &_firclsContext.readonly->logging.logStorage;
+  FIRCLSLogInternal(currentStorage, msg);
+}
+
+void FIRCLSLogToStorage(FIRCLSUserLoggingABStorage *storage, NSString *format, ...) {
+  // If the format is nil do nothing just like NSLog.
+  if (!format) {
+    return;
+  }
+
+  va_list args;
+  va_start(args, format);
+  NSString *msg = [[NSString alloc] initWithFormat:format arguments:args];
+  va_end(args);
+
+  FIRCLSLogInternal(storage, msg);
 }
 
 #pragma mark - Properties
@@ -524,7 +539,7 @@ void FIRCLSLogInternalWrite(FIRCLSFile *file, NSString *message, uint64_t time) 
   FIRCLSFileWriteSectionEnd(file);
 }
 
-void FIRCLSLogInternal(NSString *message) {
+void FIRCLSLogInternal(FIRCLSUserLoggingABStorage *storage, NSString *message) {
   if (!message) {
     return;
   }
@@ -538,7 +553,7 @@ void FIRCLSLogInternal(NSString *message) {
   struct timeval te;
 
   NSUInteger messageLength = [message length];
-  int maxLogSize = _firclsContext.readonly->logging.logStorage.maxSize;
+  int maxLogSize = storage->maxSize;
 
   if (messageLength > maxLogSize) {
     FIRCLSWarningLog(
@@ -555,9 +570,7 @@ void FIRCLSLogInternal(NSString *message) {
 
   const uint64_t time = te.tv_sec * 1000LL + te.tv_usec / 1000;
 
-  FIRCLSUserLoggingWriteAndCheckABFiles(&_firclsContext.readonly->logging.logStorage,
-                                        &_firclsContext.writable->logging.activeUserLogPath,
-                                        ^(FIRCLSFile *file) {
-                                          FIRCLSLogInternalWrite(file, message, time);
-                                        });
+  FIRCLSUserLoggingWriteAndCheckABFiles(storage, &storage->aPath, ^(FIRCLSFile *file) {
+    FIRCLSLogInternalWrite(file, message, time);
+  });
 }

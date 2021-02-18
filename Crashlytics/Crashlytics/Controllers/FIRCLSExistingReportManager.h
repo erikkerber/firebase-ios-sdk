@@ -28,23 +28,24 @@ NS_ASSUME_NONNULL_BEGIN
  * the active folder, and ignoring any reports in "processing" or "prepared".
  *
  * In the past, this would count reports in the processed or prepared
- * folders. This has been changed as reports in those paths have already
+ * folders. This has been changed because reports in those paths have already
  * been cleared for upload, so there isn't any point in asking for permission
  * or possibly spamming end-users if a report gets stuck.
  *
- * The tricky part is, now customers will NOT be alerted in checkForUnsentReports
+ * The tricky part is, customers will NOT be alerted in checkForUnsentReports
  * for reports in these paths, but when they choose sendUnsentReports / enable data
  * collection, reports in those directories will be re-managed. This should be ok and
- * just an edge case because once a report is handed off to GoogleDataTransport,
- * it is managed outside of Crashlytics data collection, and marked for upload. Reports
- * should only be in processing or prepared for a split second as they do on-device symbolication
- * and get converted into a GDTEvent..
+ * just an edge case because reports should only be in processing or prepared for a split second as
+ * they do on-device symbolication and get converted into a GDTEvent. Once a report is handed off to
+ * GoogleDataTransport, it is uploaded regardless of Crashlytics data collection.
  */
 @property(nonatomic, readonly) NSUInteger numUnsentReports;
 
 /**
  * This value needs to stay in sync with numUnsentReports, so if there is > 0 numUnsentReports,
  * newestUnsentReport needs to return a value. Otherwise it needs to return null.
+ *
+ * FIRCLSContext needs to be initialized before the FIRCrashlyticsReport is instantiated.
  */
 @property(nonatomic, readonly) FIRCrashlyticsReport *_Nullable newestUnsentReport;
 
