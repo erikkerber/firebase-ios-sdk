@@ -465,6 +465,11 @@
   XCTAssertEqualObjects(self.prepareAndSubmitReportArray[0][@"urgent"], @(NO));
 }
 
+/*
+ * This tests an edge case where there is a report in processing. For the purposes of unsent
+ * reports these are not shown to the developer, but they are uploaded / deleted upon
+ * calling send / delete.
+ */
 - (void)testFilesLeftInProcessingWithDataCollectionDisabled {
   // Put report in processing.
   FIRCLSInternalReport *report = [self createActiveReport];
@@ -513,6 +518,11 @@
   XCTAssertEqualObjects(self.uploadReportArray[0][@"path"], path);
 }
 
+/*
+ * This tests an edge case where there is a report in prepared. For the purposes of unsent
+ * reports these are not shown to the developer, but they are uploaded / deleted upon
+ * calling send / delete.
+ */
 - (void)testFilesLeftInPreparedWithDataCollectionDisabled {
   // drop a phony multipart-mime file in here, with non-zero contents
   XCTAssert([_fileManager createDirectoryAtPath:_fileManager.preparedPath]);
