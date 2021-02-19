@@ -18,6 +18,7 @@
   BOOL _hasCrash;
 
   FIRCLSUserLoggingABStorage _logStorage;
+  const char *_activeLogPath;
 
   uint32_t _internalKVCounter;
   FIRCLSUserLoggingKVStorage _internalKVStorage;
@@ -38,7 +39,7 @@
     return nil;
   }
 
-  internalReport = _internalReport;
+  _internalReport = internalReport;
   _reportID = [[internalReport identifier] copy];
   _dateCreated = [[internalReport dateCreated] copy];
   _hasCrash = [internalReport isCrash];
@@ -51,6 +52,8 @@
                                                         inInternalReport:internalReport];
   _logStorage.bPath = [FIRCrashlyticsReport filesystemPathForContentFile:FIRCLSReportLogBFile
                                                         inInternalReport:internalReport];
+
+  _activeLogPath = _logStorage.aPath;
 
   // TODO: correct kv accounting
   // TODO: correct kv accounting
@@ -139,7 +142,7 @@
     return;
   }
 
-  FIRCLSLogToStorage(&_logStorage, @"%@", msg);
+  FIRCLSLogToStorage(&_logStorage, &_activeLogPath, @"%@", msg);
 }
 
 - (void)logWithFormat:(NSString *)format, ... {

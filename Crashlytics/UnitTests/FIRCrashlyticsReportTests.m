@@ -82,11 +82,12 @@
 - (void)testPropertiesFromMetadatFile {
   FIRCrashlyticsReport *report = [self createTempCopyOfReportWithName:@"metadata_only_report"];
 
+  XCTAssertEqualObjects(@"772929a7f21f4ad293bb644668f257cd", report.reportID);
   XCTAssertEqualObjects([NSDate dateWithTimeIntervalSince1970:1423944888], report.dateCreated);
 }
 
 #pragma mark - Public Setter Methods
-- (void)testSetUserProperties {
+- (void)testSetUserID {
   FIRCrashlyticsReport *report = [self createTempCopyOfReportWithName:@"metadata_only_report"];
 
   [report setUserID:@"12345-6"];
@@ -103,18 +104,23 @@
   XCTAssertEqualObjects(entries[0][@"kv"][@"value"], FIRCLSFileHexEncodeString("12345-6"), @"");
 }
 
-- (void)testSetKeyValuesWhenNoneWerePresent {
+- (void)testCustomKeysWhenNoneWerePresent {
   FIRCrashlyticsReport *report = [self createTempCopyOfReportWithName:@"metadata_only_report"];
 
   [report setCustomValue:@"hello" forKey:@"mykey"];
   [report setCustomValue:@"goodbye" forKey:@"anotherkey"];
+
+  [report setCustomKeysAndValues:@{
+    @"is_test" : @(YES),
+    @"test_number" : @(10),
+  }];
 
   NSArray *entries = FIRCLSFileReadSections(
       [[report.internalReport pathForContentFile:FIRCLSReportUserIncrementalKVFile]
           fileSystemRepresentation],
       false, nil);
 
-  XCTAssertEqual([entries count], 2, @"");
+  XCTAssertEqual([entries count], 4, @"");
 
   // mykey = "..."
   XCTAssertEqualObjects(entries[0][@"kv"][@"key"], FIRCLSFileHexEncodeString("mykey"), @"");
@@ -123,6 +129,12 @@
   // anotherkey = "..."
   XCTAssertEqualObjects(entries[1][@"kv"][@"key"], FIRCLSFileHexEncodeString("anotherkey"), @"");
   XCTAssertEqualObjects(entries[1][@"kv"][@"value"], FIRCLSFileHexEncodeString("goodbye"), @"");
+
+  XCTAssertEqualObjects(entries[2][@"kv"][@"key"], FIRCLSFileHexEncodeString("is_test"), @"");
+  XCTAssertEqualObjects(entries[2][@"kv"][@"value"], FIRCLSFileHexEncodeString("1"), @"");
+
+  XCTAssertEqualObjects(entries[3][@"kv"][@"key"], FIRCLSFileHexEncodeString("test_number"), @"");
+  XCTAssertEqualObjects(entries[3][@"kv"][@"value"], FIRCLSFileHexEncodeString("10"), @"");
 }
 
 @end

@@ -62,7 +62,7 @@ typedef struct {
 } FIRCLSUserLoggingReadOnlyContext;
 
 typedef struct {
-  const char* activeUserLogPath;  // Unused
+  const char* activeUserLogPath;
   const char* activeErrorLogPath;
   const char* activeCustomExceptionPath;
   uint32_t userKVCount;
@@ -101,8 +101,10 @@ void FIRCLSUserLoggingWriteAndCheckABFiles(FIRCLSUserLoggingABStorage* storage,
 NSArray* FIRCLSUserLoggingStoredKeyValues(const char* path);
 
 OBJC_EXTERN void FIRCLSLog(NSString* format, ...) NS_FORMAT_FUNCTION(1, 2);
-OBJC_EXTERN void FIRCLSLogToStorage(FIRCLSUserLoggingABStorage* storage, NSString* format, ...)
-    NS_FORMAT_FUNCTION(2, 3);
+OBJC_EXTERN void FIRCLSLogToStorage(FIRCLSUserLoggingABStorage* storage,
+                                    const char** activePath,
+                                    NSString* format,
+                                    ...) NS_FORMAT_FUNCTION(3, 4);
 
 #endif
 
