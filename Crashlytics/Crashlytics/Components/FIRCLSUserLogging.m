@@ -387,7 +387,6 @@ void FIRCLSUserLoggingRecordError(NSError *error,
 }
 
 #pragma mark - CLSLog Support
-
 void FIRCLSLog(NSString *format, ...) {
   // If the format is nil do nothing just like NSLog.
   if (!format) {
