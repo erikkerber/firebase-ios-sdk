@@ -63,12 +63,6 @@
   _activeLogPath = _logStorage.aPath;
 
   // TODO: correct kv accounting
-  // TODO: correct kv accounting
-  // TODO: correct kv accounting
-  // TODO: correct kv accounting
-  // TODO: correct kv accounting
-  // TODO: correct kv accounting
-  // TODO: correct kv accounting
   // The internal report will have non-zero compacted and incremental keys. The right thing to do
   // is count them, so we can kick off compactions/pruning at the right times. By
   // setting this value to zero, we're allowing more entries to be made than there really
