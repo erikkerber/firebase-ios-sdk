@@ -66,7 +66,7 @@ NSInteger compareOlder(FIRCLSInternalReport *reportA,
 }
 
 - (FIRCrashlyticsReport *)newestUnsentReport {
-  if (self.numUnsentReports <= 0) {
+  if (self.unsentReportsCount <= 0) {
     return nil;
   }
 
@@ -88,7 +88,7 @@ NSInteger compareOlder(FIRCLSInternalReport *reportA,
   return [[FIRCrashlyticsReport alloc] initWithInternalReport:internalReport];
 }
 
-- (NSUInteger)numUnsentReports {
+- (NSUInteger)unsentReportsCount {
   // There are nuances about why we only count active reports.
   // See the header comment for more information.
   return self.existingUnemptyActiveReportPaths.count;

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#import "FIRCrashlyticsReport.h"
+#import "Crashlytics/Crashlytics/Public/FirebaseCrashlytics/FIRCrashlyticsReport.h"
 
 #import "Crashlytics/Crashlytics/Components/FIRCLSContext.h"
 #import "Crashlytics/Crashlytics/Components/FIRCLSGlobals.h"

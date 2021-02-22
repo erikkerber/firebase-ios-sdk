@@ -39,7 +39,7 @@ NS_ASSUME_NONNULL_BEGIN
  * they do on-device symbolication and get converted into a GDTEvent. Once a report is handed off to
  * GoogleDataTransport, it is uploaded regardless of Crashlytics data collection.
  */
-@property(nonatomic, readonly) NSUInteger numUnsentReports;
+@property(nonatomic, readonly) NSUInteger unsentReportsCount;
 
 /**
  * This value needs to stay in sync with numUnsentReports, so if there is > 0 numUnsentReports,

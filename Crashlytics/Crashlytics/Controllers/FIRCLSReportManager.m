@@ -289,7 +289,7 @@ typedef NSNumber FIRCLSWrappedReportAction;
     FIRCLSDebugLog(@"Automatic data collection is disabled.");
     FIRCLSDebugLog(@"[Crashlytics:Crash] %d unsent reports are available. Waiting for "
                    @"send/deleteUnsentReports to be called.",
-                   self.existingReportManager.numUnsentReports);
+                   self.existingReportManager.unsentReportsCount);
 
     // Wait for an action to get sent, either from processReports: or automatic data collection.
     promise = [[self waitForReportAction]
