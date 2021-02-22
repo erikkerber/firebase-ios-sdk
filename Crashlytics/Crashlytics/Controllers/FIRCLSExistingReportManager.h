@@ -36,7 +36,7 @@ NS_ASSUME_NONNULL_BEGIN
  * for reports in these paths, but when they choose sendUnsentReports / enable data
  * collection, reports in those directories will be re-managed. This should be ok and
  * just an edge case because reports should only be in processing or prepared for a split second as
- * they do on-device symbolication and get converted into a GDTEvent. Once a report is handed off to
+ * they do on-device symbolication and get converted into a GDTEvent. After a report is handed off to
  * GoogleDataTransport, it is uploaded regardless of Crashlytics data collection.
  */
 @property(nonatomic, readonly) NSUInteger unsentReportsCount;
